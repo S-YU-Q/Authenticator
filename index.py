@@ -1,8 +1,39 @@
-db = {}
+import csv
+import hashlib
+import os
+
 isAuthenticated = False
 
+def hash_password(pwd):
+    pwd = pwd.encode('utf-8')
+    hashed_pwd = hashlib.sha256(pwd).hexdigest()
+    return hashed_pwd
+
+
+def authenticate(usr, pw):
+    with open('db.csv', 'r') as file:
+        reader = csv.reader(file)
+        for line in reader:
+            if line[0] == usr:
+                if line[1] == pw:
+                    return True
+        return False
+            
+
+def addAccount(usrnam, passw):
+    with open('db.csv', 'a') as file:
+        writer = csv.writer(file)
+        hash_passw = hash_password(passw)
+        writer.writerow([usrnam, hash_passw])
+
+
 def checkUsername(username):
-    return username in db.keys()
+    with open('db.csv', 'r') as file:
+        reader = csv.reader(file)
+        for line in reader:
+            if line[0] == username:
+                return True
+        return False
 
 def Register():
     print(f"Register your account\n")
@@ -11,7 +42,7 @@ def Register():
         print(f"You already have an account. Please login.")
     else:
         password = input(f"Enter password: ")
-        db[username] = password
+        addAccount(username, password)
         print(f"Account has been created. Please login now.")
 
 
@@ -19,7 +50,8 @@ def Login():
     username = input(f"Enter Username: ")
     if checkUsername(username):
         password = input(f"Enter password: ")
-        if db[username] == password:
+        hashpassword = hash_password(password)
+        if authenticate(username, hashpassword):
             global isAuthenticated
             isAuthenticated = True
             print(f"You are logged in.")
